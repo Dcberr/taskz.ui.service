@@ -1,4 +1,4 @@
-import { Box, Divider, Paper, Stack, Typography } from '@mui/material';
+import { Box, Divider, Stack, Typography } from '@mui/material';
 import { EmptyState, ErrorState, LoadingState } from '../../../components/FeedbackState';
 import type { TaskEvent } from '../../../types/task';
 import { formatTaskEventDescription, formatTaskEventTitle, formatTaskEventType } from '../utils/taskEventFormatting';
@@ -6,7 +6,7 @@ import { formatDateTime } from '../../../utils/date';
 
 type TaskActivityTimelineProps = {
   taskId: string | null;
-  events?: TaskEvent[];
+  events: TaskEvent[] | undefined;
   isLoading: boolean;
   isError: boolean;
   errorMessage: string;
@@ -40,7 +40,15 @@ export function TaskActivityTimeline({
   }
 
   return (
-    <Paper sx={{ p: 2 }}>
+    <Box
+      sx={{
+        p: 2.25,
+        border: '1px solid',
+        borderColor: 'divider',
+        borderRadius: 2.5,
+        bgcolor: '#ffffff',
+      }}
+    >
       <Stack spacing={2}>
         <Box>
           <Typography variant="subtitle1" fontWeight={700}>
@@ -85,6 +93,6 @@ export function TaskActivityTimeline({
           ))}
         </Stack>
       </Stack>
-    </Paper>
+    </Box>
   );
 }

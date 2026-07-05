@@ -1,9 +1,10 @@
-import { Alert, Box, Button, MenuItem, Paper, Stack, TextField, Typography } from '@mui/material';
+import { Alert, Box, Button, MenuItem, Stack, TextField, Typography } from '@mui/material';
 import { useEffect, useMemo, useState } from 'react';
 import type { TaskDetail, TaskPriority, TaskStatus } from '../../../types/task';
 import { useUpdateTaskAssigneeMutation, useUpdateTaskPriorityMutation, useUpdateTaskStatusMutation } from '../hooks/useTaskMutations';
 import { ConfirmDialog } from '../../../components/ConfirmDialog';
 import { useToast } from '../../../components/ToastProvider';
+import { parseAssigneesInput } from '../../../utils/assignees';
 
 type TaskActionFormProps = {
   task: TaskDetail;
@@ -27,7 +28,7 @@ const priorityOptions: Array<{ label: string; value: TaskPriority }> = [
 type FormState = {
   status: string;
   priority: string;
-  assignee: string;
+  assignees: string;
 };
 
 type FormErrors = Partial<Record<keyof FormState, string>>;
@@ -46,12 +47,16 @@ function validate(values: FormState): FormErrors {
   return errors;
 }
 
+function areAssigneesEqual(left: string[], right: string[]): boolean {
+  return left.length === right.length && left.every((value, index) => value === right[index]);
+}
+
 export function TaskActionForm({ task }: TaskActionFormProps) {
   const { showToast } = useToast();
   const [values, setValues] = useState<FormState>({
     status: task.status,
     priority: task.priority,
-    assignee: task.assignee ?? '',
+    assignees: task.assignees.join(', '),
   });
   const [errors, setErrors] = useState<FormErrors>({});
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
@@ -62,25 +67,26 @@ export function TaskActionForm({ task }: TaskActionFormProps) {
   const assigneeMutation = useUpdateTaskAssigneeMutation();
 
   const isSubmitting = statusMutation.isPending || priorityMutation.isPending || assigneeMutation.isPending;
+  const parsedAssignees = useMemo(() => parseAssigneesInput(values.assignees), [values.assignees]);
 
   const hasChanges = useMemo(
     () =>
       values.status !== task.status ||
       values.priority !== task.priority ||
-      values.assignee !== (task.assignee ?? ''),
-    [task.assignee, task.priority, task.status, values.assignee, values.priority, values.status],
+      !areAssigneesEqual(parsedAssignees, task.assignees),
+    [parsedAssignees, task.assignees, task.priority, task.status, values.priority, values.status],
   );
 
   useEffect(() => {
     setValues({
       status: task.status,
       priority: task.priority,
-      assignee: task.assignee ?? '',
+      assignees: task.assignees.join(', '),
     });
     setErrors({});
     setSuccessMessage(null);
     setConfirmOpen(false);
-  }, [task.assignee, task.priority, task.status, task.id]);
+  }, [task.assignees, task.priority, task.status, task.id]);
 
   const handleSubmit = async () => {
     const nextErrors = validate(values);
@@ -107,8 +113,8 @@ export function TaskActionForm({ task }: TaskActionFormProps) {
         mutations.push(priorityMutation.mutateAsync({ taskId: task.id, value: values.priority }));
       }
 
-      if (values.assignee !== (task.assignee ?? '')) {
-        mutations.push(assigneeMutation.mutateAsync({ taskId: task.id, value: values.assignee }));
+      if (!areAssigneesEqual(parsedAssignees, task.assignees)) {
+        mutations.push(assigneeMutation.mutateAsync({ taskId: task.id, value: parsedAssignees }));
       }
 
       await Promise.all(mutations);
@@ -121,7 +127,15 @@ export function TaskActionForm({ task }: TaskActionFormProps) {
   };
 
   return (
-    <Paper sx={{ p: 2 }}>
+    <Box
+      sx={{
+        p: 2.25,
+        border: '1px solid',
+        borderColor: 'divider',
+        borderRadius: 2.5,
+        bgcolor: '#ffffff',
+      }}
+    >
       <Stack spacing={2}>
         <Typography variant="subtitle1" fontWeight={700}>
           Update Task
@@ -158,11 +172,11 @@ export function TaskActionForm({ task }: TaskActionFormProps) {
         </TextField>
         <TextField
           fullWidth
-          label="Assignee"
-          value={values.assignee}
-          onChange={(event) => setValues((current) => ({ ...current, assignee: event.target.value }))}
-          error={Boolean(errors.assignee)}
-          helperText={errors.assignee ?? 'Leave blank to unassign the task.'}
+          label="Assignees"
+          value={values.assignees}
+          onChange={(event) => setValues((current) => ({ ...current, assignees: event.target.value }))}
+          error={Boolean(errors.assignees)}
+          helperText={errors.assignees ?? 'Separate multiple assignees with commas. Leave blank to unassign the task.'}
         />
         {successMessage ? <Alert severity="success">{successMessage}</Alert> : null}
         <Box sx={{ display: 'flex', justifyContent: 'flex-end' }}>
@@ -182,6 +196,6 @@ export function TaskActionForm({ task }: TaskActionFormProps) {
           loading={isSubmitting}
         />
       </Stack>
-    </Paper>
+    </Box>
   );
 }

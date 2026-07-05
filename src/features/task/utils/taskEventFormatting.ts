@@ -4,7 +4,7 @@ const eventLabels: Record<string, string> = {
   TASK_CREATED: 'Task Created',
   STATUS_CHANGED: 'Status Changed',
   PRIORITY_CHANGED: 'Priority Changed',
-  ASSIGNEE_CHANGED: 'Assignee Changed',
+  ASSIGNEE_CHANGED: 'Assignees Changed',
   TASK_COMPLETED: 'Completed',
   TASK_CANCELLED: 'Cancelled',
 };

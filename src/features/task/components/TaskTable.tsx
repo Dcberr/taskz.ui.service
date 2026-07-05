@@ -1,7 +1,9 @@
 import {
   Box,
+  Chip,
   IconButton,
   Paper,
+  Stack,
   Table,
   TableBody,
   TableCell,
@@ -11,36 +13,36 @@ import {
   TableSortLabel,
   Tooltip,
   Typography,
-  Stack,
 } from '@mui/material';
 import RefreshIcon from '@mui/icons-material/Refresh';
 import { EmptyState, ErrorState, LoadingState } from '../../../components/FeedbackState';
 import { TaskTableSkeleton } from '../../../components/Skeletons';
-import type { SortDirection, Task, TaskListResponse } from '../../../types/task';
+import type { SortDirection, TaskListResponse } from '../../../types/task';
 import { formatDateTime } from '../../../utils/date';
+import { assigneeChipSx, getDueDateVisual, getPriorityVisual, getStatusVisual } from '../utils/taskVisuals';
 
-type SortableColumn = keyof Pick<Task, 'title' | 'assignee' | 'requester' | 'priority' | 'status' | 'dueDate' | 'createdAt'>;
+type TaskSortableColumn = 'title' | 'assignee' | 'requester' | 'priority' | 'status' | 'dueDate' | 'createdAt';
 
 type TaskTableProps = {
-  data?: TaskListResponse;
+  data: TaskListResponse | undefined;
   isLoading: boolean;
   isFetching: boolean;
   isError: boolean;
   errorMessage: string;
-  sortBy: SortableColumn;
+  sortBy: TaskSortableColumn;
   sortDirection: SortDirection;
-  onSortChange: (column: SortableColumn) => void;
+  onSortChange: (column: TaskSortableColumn) => void;
   onRefresh: () => void;
   onTaskClick: (taskId: string) => void;
 };
 
-const columns: Array<{ key: SortableColumn; label: string }> = [
+const columns: Array<{ key: TaskSortableColumn; label: string }> = [
   { key: 'title', label: 'Title' },
-  { key: 'assignee', label: 'Assignee' },
-  { key: 'requester', label: 'Requester' },
-  { key: 'priority', label: 'Priority' },
   { key: 'status', label: 'Status' },
+  { key: 'priority', label: 'Priority' },
+  { key: 'assignee', label: 'Assignees' },
   { key: 'dueDate', label: 'Due Date' },
+  { key: 'requester', label: 'Requester' },
   { key: 'createdAt', label: 'Created At' },
 ];
 
@@ -102,10 +104,20 @@ export function TaskTable({
   }
 
   return (
-    <Paper sx={{ overflow: 'hidden' }}>
-      <Box sx={{ px: 2, py: 1.5, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <Typography variant="subtitle1" fontWeight={700}>
-          Task List
+    <Paper sx={{ overflow: 'hidden', borderRadius: 2.5, bgcolor: '#ffffff' }}>
+      <Box
+        sx={{
+          px: 2.5,
+          py: 1.85,
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          borderBottom: '1px solid',
+          borderColor: 'divider',
+        }}
+      >
+        <Typography variant="subtitle1" fontWeight={800}>
+          Task Queue
         </Typography>
         <Tooltip title="Refresh">
           <span>
@@ -116,7 +128,7 @@ export function TaskTable({
         </Tooltip>
       </Box>
       <TableContainer>
-        <Table size="small">
+        <Table size="small" sx={{ '& .MuiTableCell-root': { py: 1.25 } }}>
           <TableHead>
             <TableRow>
               {columns.map((column) => (
@@ -133,17 +145,69 @@ export function TaskTable({
             </TableRow>
           </TableHead>
           <TableBody>
-            {data.items.map((task) => (
-              <TableRow key={task.id} hover sx={{ cursor: 'pointer' }} onClick={() => onTaskClick(task.id)}>
-                <TableCell>{task.title}</TableCell>
-                <TableCell>{task.assignee ?? '-'}</TableCell>
-                <TableCell>{task.requester ?? '-'}</TableCell>
-                <TableCell>{task.priority}</TableCell>
-                <TableCell>{task.status}</TableCell>
-                <TableCell>{formatDate(task.dueDate)}</TableCell>
-                <TableCell>{formatDate(task.createdAt)}</TableCell>
-              </TableRow>
-            ))}
+            {data.items.map((task) => {
+              const statusVisual = getStatusVisual(task.status);
+              const priorityVisual = getPriorityVisual(task.priority);
+              const dueDateVisual = getDueDateVisual(task.dueDate);
+
+              return (
+                <TableRow
+                  key={task.id}
+                  hover
+                  sx={{
+                    cursor: 'pointer',
+                    '&:last-child td': { borderBottom: 0 },
+                    '&:hover': {
+                      bgcolor: 'rgba(15, 118, 110, 0.04)',
+                    },
+                  }}
+                  onClick={() => onTaskClick(task.id)}
+                >
+                  <TableCell sx={{ minWidth: 260 }}>
+                    <Stack spacing={0.5}>
+                      <Typography variant="body2" fontWeight={800} color="text.primary">
+                        {task.title}
+                      </Typography>
+                      <Typography variant="caption" color="text.secondary">
+                        Created {formatDate(task.createdAt)}
+                      </Typography>
+                    </Stack>
+                  </TableCell>
+                  <TableCell>
+                    <Chip variant="outlined" size="small" label={statusVisual.label} sx={statusVisual.sx} />
+                  </TableCell>
+                  <TableCell>
+                    <Chip variant="outlined" size="small" label={priorityVisual.label} sx={priorityVisual.sx} />
+                  </TableCell>
+                  <TableCell sx={{ minWidth: 180 }}>
+                    {task.assignees.length > 0 ? (
+                      <Stack direction="row" flexWrap="wrap" useFlexGap spacing={0.75}>
+                        {task.assignees.slice(0, 3).map((assignee) => (
+                          <Chip key={assignee} variant="outlined" size="small" label={assignee} sx={assigneeChipSx} />
+                        ))}
+                        {task.assignees.length > 3 ? (
+                          <Chip variant="outlined" size="small" label={`+${task.assignees.length - 3}`} sx={assigneeChipSx} />
+                        ) : null}
+                      </Stack>
+                    ) : (
+                      <Typography variant="body2" color="text.secondary">
+                        Unassigned
+                      </Typography>
+                    )}
+                  </TableCell>
+                  <TableCell sx={{ minWidth: 150 }}>
+                    <Stack spacing={0.5} alignItems="flex-start">
+                      <Chip variant="outlined" size="small" label={dueDateVisual.label} sx={dueDateVisual.sx} />
+                      <Typography variant="caption" color="text.secondary">
+                        {formatDate(task.dueDate)}
+                      </Typography>
+                    </Stack>
+                  </TableCell>
+                  <TableCell>{task.requester ?? '-'}</TableCell>
+                  <TableCell>{formatDate(task.createdAt)}</TableCell>
+                </TableRow>
+              );
+            })}
           </TableBody>
         </Table>
       </TableContainer>

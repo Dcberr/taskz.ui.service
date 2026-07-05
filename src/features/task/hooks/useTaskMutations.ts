@@ -10,6 +10,11 @@ type UpdateTaskInput = {
   value: string;
 };
 
+type UpdateTaskAssigneesInput = {
+  taskId: string;
+  value: string[];
+};
+
 function patchTaskDetail(taskId: string, updater: (current: TaskDetail) => TaskDetail) {
   queryClient.setQueryData(taskDetailQueryKeys.detail(taskId), (current: unknown) => {
     if (!current || typeof current !== 'object') {
@@ -69,12 +74,12 @@ export function useUpdateTaskPriorityMutation() {
 
 export function useUpdateTaskAssigneeMutation() {
   return useMutation({
-    mutationFn: ({ taskId, value }: UpdateTaskInput) => updateTaskAssignee(taskId, { assignee: value }),
+    mutationFn: ({ taskId, value }: UpdateTaskAssigneesInput) => updateTaskAssignee(taskId, { assignees: value }),
     onMutate: async ({ taskId, value }) => {
       await queryClient.cancelQueries({ queryKey: taskDetailQueryKeys.detail(taskId) });
       const previousTask = queryClient.getQueryData<TaskDetail>(taskDetailQueryKeys.detail(taskId));
 
-      patchTaskDetail(taskId, (current) => ({ ...current, assignee: value.trim() === '' ? null : value }));
+      patchTaskDetail(taskId, (current) => ({ ...current, assignees: value }));
 
       return { previousTask, taskId };
     },

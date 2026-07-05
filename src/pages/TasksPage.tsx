@@ -1,8 +1,9 @@
-import { Box, Pagination, Paper, Stack, Typography } from '@mui/material';
+import RefreshIcon from '@mui/icons-material/Refresh';
+import { Box, Button, Chip, Pagination, Paper, Stack, Typography } from '@mui/material';
 import { useMemo, useState } from 'react';
 import type { ChangeEvent } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import { TaskDetailDrawer } from '../features/task/components/TaskDetailDrawer';
+import { TaskDetailDialog } from '../features/task/components/TaskDetailDialog';
 import { TaskTable } from '../features/task/components/TaskTable';
 import { useTasks } from '../features/task/hooks/useTasks';
 import { useTaskDetail } from '../features/task/hooks/useTaskDetail';
@@ -35,9 +36,9 @@ export function TasksPage() {
       size: pageSize,
       sortBy,
       sortDirection,
-      status: filters.status || undefined,
-      priority: filters.priority || undefined,
-      assignee: filters.assignee || undefined,
+      ...(filters.status ? { status: filters.status } : {}),
+      ...(filters.priority ? { priority: filters.priority } : {}),
+      ...(filters.assignee ? { assignee: filters.assignee } : {}),
     }),
     [filters.assignee, filters.priority, filters.status, page, sortBy, sortDirection],
   );
@@ -74,7 +75,7 @@ export function TasksPage() {
     setSearchParams(nextParams, { replace: true });
   };
 
-  const handleDrawerClose = () => {
+  const handleDetailClose = () => {
     const nextParams = new URLSearchParams(searchParams);
     nextParams.delete('taskId');
     setSearchParams(nextParams, { replace: true });
@@ -82,14 +83,51 @@ export function TasksPage() {
 
   return (
     <Stack spacing={3}>
-      <Box>
-        <Typography variant="h4" gutterBottom>
-          Tasks
-        </Typography>
-        <Typography color="text.secondary">
-          Displaying tasks from the backend with pagination, sorting, and filters.
-        </Typography>
-      </Box>
+      <Paper
+        sx={{
+          p: { xs: 2.25, md: 2.75 },
+          borderRadius: 3,
+          overflow: 'hidden',
+          position: 'relative',
+        }}
+      >
+        <Stack
+          direction={{ xs: 'column', md: 'row' }}
+          justifyContent="space-between"
+          alignItems={{ xs: 'flex-start', md: 'center' }}
+          spacing={2}
+        >
+          <Box>
+            <Stack direction="row" spacing={1} alignItems="center" flexWrap="wrap" useFlexGap>
+              <Typography variant="h4">Tasks</Typography>
+              {tasksQuery.data ? (
+                <Chip
+                  label={`${tasksQuery.data.totalItems} total`}
+                  size="small"
+                  sx={{
+                    borderRadius: 1.5,
+                    color: 'primary.dark',
+                    bgcolor: 'rgba(15, 118, 110, 0.1)',
+                    fontWeight: 800,
+                  }}
+                />
+              ) : null}
+            </Stack>
+            <Typography color="text.secondary" sx={{ mt: 0.75, maxWidth: 620 }}>
+              Review incoming work, prioritize urgent items, and inspect task details without leaving the queue.
+            </Typography>
+          </Box>
+          <Button
+            variant="contained"
+            startIcon={<RefreshIcon />}
+            onClick={handleRefresh}
+            disabled={tasksQuery.isFetching}
+            sx={{ minWidth: 132 }}
+          >
+            Refresh
+          </Button>
+        </Stack>
+      </Paper>
 
       <TaskFilterBar
         filters={filters}
@@ -114,8 +152,8 @@ export function TasksPage() {
         onTaskClick={handleTaskClick}
       />
 
-      <Paper sx={{ px: 2, py: 1.5 }}>
-        <Stack direction="row" justifyContent="space-between" alignItems="center" spacing={2}>
+      <Paper sx={{ px: 2.25, py: 1.65, borderRadius: 2.5 }}>
+        <Stack direction={{ xs: 'column', sm: 'row' }} justifyContent="space-between" alignItems={{ xs: 'stretch', sm: 'center' }} spacing={2}>
           <Typography variant="body2" color="text.secondary">
             {tasksQuery.data
               ? `Showing ${tasksQuery.data.items.length} of ${tasksQuery.data.totalItems} tasks`
@@ -131,14 +169,14 @@ export function TasksPage() {
         </Stack>
       </Paper>
 
-      <TaskDetailDrawer
+      <TaskDetailDialog
         open={Boolean(selectedTaskId)}
         taskId={selectedTaskId}
         task={taskDetailQuery.data}
         isLoading={taskDetailQuery.isLoading}
         isError={taskDetailQuery.isError}
         errorMessage={taskDetailQuery.error instanceof Error ? taskDetailQuery.error.message : 'Failed to load task details.'}
-        onClose={handleDrawerClose}
+        onClose={handleDetailClose}
       />
     </Stack>
   );

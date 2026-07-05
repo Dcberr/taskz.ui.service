@@ -9,8 +9,8 @@ type StateShellProps = {
 
 export function EmptyState({ title, description, action }: StateShellProps) {
   return (
-    <Paper sx={{ p: 4 }}>
-      <Stack spacing={2} alignItems="flex-start">
+    <Paper sx={{ p: { xs: 3, md: 4 }, borderRadius: 2.5, bgcolor: '#ffffff' }}>
+      <Stack spacing={2.25} alignItems="flex-start">
         <Typography variant="h6">{title}</Typography>
         <Typography color="text.secondary">{description}</Typography>
         {action}
@@ -32,8 +32,8 @@ export function ErrorState({ title, description, action }: StateShellProps) {
 
 export function LoadingState({ title, description }: StateShellProps) {
   return (
-    <Paper sx={{ p: 4 }}>
-      <Stack spacing={2} alignItems="center">
+    <Paper sx={{ p: { xs: 3, md: 4 }, borderRadius: 2.5, bgcolor: '#ffffff' }}>
+      <Stack spacing={2.25} alignItems="center">
         <CircularProgress />
         <Typography variant="h6">{title}</Typography>
         <Typography color="text.secondary" textAlign="center">

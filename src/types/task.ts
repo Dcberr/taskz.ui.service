@@ -5,7 +5,7 @@ export type Task = {
   id: string;
   title: string;
   description: string | null;
-  assignee: string | null;
+  assignees: string[];
   requester: string | null;
   priority: TaskPriority;
   status: TaskStatus;
@@ -43,7 +43,7 @@ export type SortDirection = 'asc' | 'desc';
 export type TaskListParams = {
   page: number;
   size: number;
-  sortBy: keyof Pick<Task, 'title' | 'assignee' | 'requester' | 'priority' | 'status' | 'dueDate' | 'createdAt'>;
+  sortBy: 'title' | 'assignee' | 'requester' | 'priority' | 'status' | 'dueDate' | 'createdAt';
   sortDirection: SortDirection;
   status?: string;
   priority?: string;

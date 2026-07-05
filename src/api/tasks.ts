@@ -1,5 +1,6 @@
 import { httpClient } from './httpClient';
 import type { Task, TaskDetail, TaskEvent, TaskListParams, TaskListResponse } from '../types/task';
+import { normalizeAssignees } from '../utils/assignees';
 
 type UnknownRecord = Record<string, unknown>;
 
@@ -22,7 +23,7 @@ function toTask(value: unknown): Task {
     id: String(value.id ?? ''),
     title: String(value.title ?? ''),
     description: toStringOrNull(value.description),
-    assignee: toStringOrNull(value.assignee),
+    assignees: normalizeAssignees(value.assignees ?? value.assignee),
     requester: toStringOrNull(value.requester),
     priority: String(value.priority ?? ''),
     status: String(value.status ?? ''),
@@ -140,7 +141,7 @@ type UpdateTaskPriorityPayload = {
 };
 
 type UpdateTaskAssigneePayload = {
-  assignee: string;
+  assignees: string[];
 };
 
 export async function updateTaskStatus(taskId: string, payload: UpdateTaskStatusPayload): Promise<TaskDetail> {

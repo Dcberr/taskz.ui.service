@@ -2,6 +2,7 @@ import { useQuery } from '@tanstack/react-query';
 import { httpClient } from '../../../api/httpClient';
 import type { Task } from '../../../types/task';
 import type { DashboardTaskBucket } from '../../../types/dashboard';
+import { normalizeAssignees } from '../../../utils/assignees';
 
 type UnknownRecord = Record<string, unknown>;
 
@@ -22,7 +23,7 @@ function toTask(value: unknown): Task {
     id: String(value.id ?? ''),
     title: String(value.title ?? ''),
     description: typeof value.description === 'string' && value.description.trim() !== '' ? value.description : null,
-    assignee: toStringOrNull(value.assignee),
+    assignees: normalizeAssignees(value.assignees ?? value.assignee),
     requester: toStringOrNull(value.requester),
     priority: String(value.priority ?? ''),
     status: String(value.status ?? ''),
