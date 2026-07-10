@@ -1,36 +1,6 @@
 import { httpClient } from './httpClient';
-import type { Task, TaskDetail, TaskEvent, TaskListParams, TaskListResponse } from '../types/task';
-import { normalizeAssignees } from '../utils/assignees';
-
-type UnknownRecord = Record<string, unknown>;
-
-function isRecord(value: unknown): value is UnknownRecord {
-  return typeof value === 'object' && value !== null;
-}
-
-function toStringOrNull(value: unknown): string | null {
-  return typeof value === 'string' && value.trim() !== '' ? value : null;
-}
-
-function toTask(value: unknown): Task {
-  if (!isRecord(value)) {
-    throw new Error('Invalid task payload received from server.');
-  }
-
-  const dueDate = toStringOrNull(value.dueDate ?? value.dueDateTime);
-
-  return {
-    id: String(value.id ?? ''),
-    title: String(value.title ?? ''),
-    description: toStringOrNull(value.description),
-    assignees: normalizeAssignees(value.assignees ?? value.assignee),
-    requester: toStringOrNull(value.requester),
-    priority: String(value.priority ?? ''),
-    status: String(value.status ?? ''),
-    dueDate,
-    createdAt: String(value.createdAt ?? ''),
-  };
-}
+import type { TaskDetail, TaskEvent, TaskListParams, TaskListResponse } from '../types/task';
+import { isRecord, toNumber, toStringOrNull, toTask, toWorkflowDetails } from './normalizers';
 
 function toTaskDetail(value: unknown): TaskDetail {
   if (!isRecord(value)) {
@@ -52,6 +22,7 @@ function toTaskDetail(value: unknown): TaskDetail {
     aiConfidence,
     updatedAt: toStringOrNull(value.updatedAt),
     completedAt: toStringOrNull(value.completedAt),
+    workflowDetails: toWorkflowDetails(value.workflowDetails),
   };
 }
 
@@ -69,10 +40,6 @@ function toTaskEvent(value: unknown): TaskEvent {
     description: toStringOrNull(value.description ?? value.details ?? value.message),
     createdAt: String(value.createdAt ?? value.timestamp ?? ''),
   };
-}
-
-function toNumber(value: unknown, fallback: number): number {
-  return typeof value === 'number' && Number.isFinite(value) ? value : fallback;
 }
 
 function normalizeResponse(data: unknown, params: TaskListParams): TaskListResponse {

@@ -9,6 +9,9 @@ import SettingsIcon from '@mui/icons-material/Settings';
 import SpaceDashboardIcon from '@mui/icons-material/SpaceDashboard';
 import TaskAltIcon from '@mui/icons-material/TaskAlt';
 import WorkspacesIcon from '@mui/icons-material/Workspaces';
+import AccountTreeIcon from '@mui/icons-material/AccountTree';
+import MailOutlineIcon from '@mui/icons-material/MailOutline';
+import { TaskLogo } from '../components/brand/TaskLogo';
 import {
   Avatar,
   Box,
@@ -33,10 +36,14 @@ import { useMemo, useState } from 'react';
 import { Outlet, NavLink, useLocation } from 'react-router-dom';
 
 const drawerWidth = 244;
+const brandName = 'Task';
+const brandSubtitle = 'Workflow Intelligence';
 
 const navItems = [
   { label: 'Dashboard', to: '/dashboard', icon: SpaceDashboardIcon },
   { label: 'Tasks', to: '/tasks', icon: TaskAltIcon },
+  { label: 'Workflows', to: '/workflows', icon: AccountTreeIcon },
+  { label: 'Messages', to: '/messages/mock', icon: MailOutlineIcon },
   { label: 'Completed', to: '/completed', icon: CheckCircleIcon },
   { label: 'Analytics', to: '/analytics', icon: AnalyticsIcon },
 ];
@@ -54,33 +61,20 @@ export function AppLayout() {
   const [userMenuAnchor, setUserMenuAnchor] = useState<HTMLElement | null>(null);
 
   const currentSection = useMemo(() => {
-    return navItems.find((item) => location.pathname.startsWith(item.to))?.label ?? 'Taskz';
+    return navItems.find((item) => location.pathname.startsWith(item.to))?.label ?? brandName;
   }, [location.pathname]);
 
   const sidebar = (
     <Stack sx={{ height: '100%' }}>
       <Toolbar sx={{ px: 2.25, py: 1.75, minHeight: 72 }}>
         <Stack direction="row" spacing={1.25} alignItems="center">
-          <Box
-            sx={{
-              width: 36,
-              height: 36,
-              borderRadius: 2,
-              display: 'grid',
-              placeItems: 'center',
-              color: '#ffffff',
-              bgcolor: 'primary.main',
-              fontWeight: 900,
-            }}
-          >
-            T
-          </Box>
+          <TaskLogo size={38} />
           <Box>
             <Typography variant="h6" fontWeight={780}>
-              Taskz
+              {brandName}
             </Typography>
             <Typography variant="caption" color="text.secondary" fontWeight={650}>
-              Operations Hub
+              {brandSubtitle}
             </Typography>
           </Box>
         </Stack>
@@ -253,7 +247,7 @@ export function AppLayout() {
             <Stack direction="row" spacing={1} alignItems="center" justifyContent="flex-end" sx={{ minWidth: 0 }}>
               <Chip
                 icon={<WorkspacesIcon />}
-                label="Product Review"
+                label="Task AI"
                 sx={{
                   display: { xs: 'none', lg: 'inline-flex' },
                   height: 38,

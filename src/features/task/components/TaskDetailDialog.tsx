@@ -22,6 +22,7 @@ import { TaskActivityTimeline } from './TaskActivityTimeline';
 import { TaskActionForm } from './TaskActionForm';
 import { useTaskEvents } from '../hooks/useTaskEvents';
 import { assigneeChipSx, getDueDateVisual, getPriorityVisual, getStatusVisual } from '../utils/taskVisuals';
+import { TaskWorkflowPanel } from '../../workflow/components/TaskWorkflowPanel';
 
 type TaskDetailDialogProps = {
   open: boolean;
@@ -38,7 +39,7 @@ type DetailItem = {
   value: string;
 };
 
-const tabs = ['Overview', 'Update', 'Activity', 'Metadata'] as const;
+const tabs = ['Overview', 'Workflow', 'Update', 'Activity', 'Metadata'] as const;
 
 function formatDate(value: string | null): string {
   return formatDateTime(value);
@@ -178,6 +179,60 @@ export function TaskDetailDialog({
                 ) : (
                   <Chip variant="outlined" size="small" label="Unassigned" sx={assigneeChipSx} />
                 )}
+                <Chip
+                  variant="outlined"
+                  size="small"
+                  label={`AI ${formatConfidence(task.aiConfidence)}`}
+                  sx={{
+                    borderRadius: 1.5,
+                    fontWeight: 700,
+                    color: '#1d4ed8',
+                    bgcolor: 'rgba(29, 78, 216, 0.08)',
+                    borderColor: 'rgba(29, 78, 216, 0.2)',
+                  }}
+                />
+                {task.workflowDetails?.taskType ? (
+                  <Chip
+                    variant="outlined"
+                    size="small"
+                    label={task.workflowDetails.taskType}
+                    sx={{
+                      borderRadius: 1.5,
+                      fontWeight: 700,
+                      color: '#115e59',
+                      bgcolor: 'rgba(15, 118, 110, 0.09)',
+                      borderColor: 'rgba(15, 118, 110, 0.22)',
+                    }}
+                  />
+                ) : null}
+                {task.workflowDetails?.isCritical ? (
+                  <Chip
+                    variant="outlined"
+                    size="small"
+                    label="Critical"
+                    sx={{
+                      borderRadius: 1.5,
+                      fontWeight: 800,
+                      color: '#b91c1c',
+                      bgcolor: 'rgba(220, 38, 38, 0.1)',
+                      borderColor: 'rgba(185, 28, 28, 0.24)',
+                    }}
+                  />
+                ) : null}
+                {task.workflowDetails ? (
+                  <Chip
+                    variant="outlined"
+                    size="small"
+                    label={`${task.workflowDetails.dependencyCount} deps`}
+                    sx={{
+                      borderRadius: 1.5,
+                      fontWeight: 700,
+                      color: '#334155',
+                      bgcolor: '#f8fafc',
+                      borderColor: 'rgba(15, 23, 42, 0.14)',
+                    }}
+                  />
+                ) : null}
               </Stack>
             ) : null}
           </Stack>
@@ -277,10 +332,14 @@ export function TaskDetailDialog({
               </TabPanel>
 
               <TabPanel active={activeTab} index={1}>
-                <TaskActionForm task={task} />
+                <TaskWorkflowPanel workflowDetails={task.workflowDetails} aiConfidence={task.aiConfidence} />
               </TabPanel>
 
               <TabPanel active={activeTab} index={2}>
+                <TaskActionForm task={task} />
+              </TabPanel>
+
+              <TabPanel active={activeTab} index={3}>
                 <TaskActivityTimeline
                   taskId={taskId}
                   events={taskEventsQuery.data}
@@ -292,13 +351,14 @@ export function TaskDetailDialog({
                 />
               </TabPanel>
 
-              <TabPanel active={activeTab} index={3}>
+              <TabPanel active={activeTab} index={4}>
                 <Stack spacing={2}>
                   <DetailList
                     items={[
                       { label: 'AI Confidence', value: formatConfidence(task.aiConfidence) },
                       { label: 'Source', value: task.source ?? '-' },
                       { label: 'Source Message Id', value: task.sourceMessageId ?? '-' },
+                      { label: 'Workflow Id', value: task.workflowDetails?.workflowId ?? '-' },
                     ]}
                   />
                   <DetailList

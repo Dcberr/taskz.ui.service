@@ -7,9 +7,10 @@ import { useDashboardTasks } from '../features/dashboard/hooks/useDashboardTasks
 import type { DashboardSummary } from '../types/dashboard';
 import type { Task } from '../types/task';
 import { useAppTitle } from '../hooks/useAppTitle';
+import { getApiErrorMessage } from '../api/errors';
 
 export function DashboardPage() {
-  useAppTitle('Taskz | Dashboard');
+  useAppTitle('Task | Dashboard');
 
   const openTasksQuery = useDashboardTasks('open');
   const completedTasksQuery = useDashboardTasks('completed');
@@ -69,8 +70,8 @@ export function DashboardPage() {
   const isLoading = openTasksQuery.isLoading || completedTasksQuery.isLoading;
   const isError = openTasksQuery.isError || completedTasksQuery.isError;
   const errorMessage =
-    (openTasksQuery.error instanceof Error && openTasksQuery.error.message) ||
-    (completedTasksQuery.error instanceof Error && completedTasksQuery.error.message) ||
+    (openTasksQuery.error && getApiErrorMessage(openTasksQuery.error, 'Failed to load dashboard data.')) ||
+    (completedTasksQuery.error && getApiErrorMessage(completedTasksQuery.error, 'Failed to load dashboard data.')) ||
     'Failed to load dashboard data.';
 
   return (

@@ -1,3 +1,5 @@
+import type { WorkflowDetails } from './workflow';
+
 export type TaskPriority = 'LOW' | 'MEDIUM' | 'HIGH' | 'URGENT' | string;
 export type TaskStatus = 'OPEN' | 'IN_PROGRESS' | 'COMPLETED' | 'BLOCKED' | 'CANCELLED' | string;
 
@@ -19,6 +21,7 @@ export type TaskDetail = Task & {
   aiConfidence: number | null;
   updatedAt: string | null;
   completedAt: string | null;
+  workflowDetails: WorkflowDetails | null;
 };
 
 export type TaskEventType =

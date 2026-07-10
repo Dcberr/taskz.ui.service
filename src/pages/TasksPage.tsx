@@ -11,13 +11,14 @@ import type { SortDirection, TaskListParams } from '../types/task';
 import { useAppTitle } from '../hooks/useAppTitle';
 import { TaskFilterBar } from '../features/task/components/TaskFilterBar';
 import { useTaskFilters } from '../features/task/hooks/useTaskFilters';
+import { getApiErrorMessage } from '../api/errors';
 
 const defaultSortBy: TaskListParams['sortBy'] = 'createdAt';
 const defaultSortDirection: SortDirection = 'desc';
 const pageSize = 10;
 
 export function TasksPage() {
-  useAppTitle('Taskz | Tasks');
+  useAppTitle('Task | Tasks');
 
   const [searchParams, setSearchParams] = useSearchParams();
   const [sortBy, setSortBy] = useState<TaskListParams['sortBy']>(defaultSortBy);
@@ -144,7 +145,7 @@ export function TasksPage() {
         isLoading={tasksQuery.isLoading}
         isFetching={tasksQuery.isFetching}
         isError={tasksQuery.isError}
-        errorMessage={tasksQuery.error instanceof Error ? tasksQuery.error.message : 'Failed to load tasks.'}
+        errorMessage={getApiErrorMessage(tasksQuery.error, 'Failed to load tasks.')}
         sortBy={sortBy}
         sortDirection={sortDirection}
         onSortChange={handleSortChange}
@@ -175,7 +176,7 @@ export function TasksPage() {
         task={taskDetailQuery.data}
         isLoading={taskDetailQuery.isLoading}
         isError={taskDetailQuery.isError}
-        errorMessage={taskDetailQuery.error instanceof Error ? taskDetailQuery.error.message : 'Failed to load task details.'}
+        errorMessage={getApiErrorMessage(taskDetailQuery.error, 'Failed to load task details.')}
         onClose={handleDetailClose}
       />
     </Stack>

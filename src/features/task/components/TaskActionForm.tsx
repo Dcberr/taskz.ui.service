@@ -5,6 +5,7 @@ import { useUpdateTaskAssigneeMutation, useUpdateTaskPriorityMutation, useUpdate
 import { ConfirmDialog } from '../../../components/ConfirmDialog';
 import { useToast } from '../../../components/ToastProvider';
 import { parseAssigneesInput } from '../../../utils/assignees';
+import { getApiErrorMessage } from '../../../api/errors';
 
 type TaskActionFormProps = {
   task: TaskDetail;
@@ -120,9 +121,9 @@ export function TaskActionForm({ task }: TaskActionFormProps) {
       await Promise.all(mutations);
       setSuccessMessage('Task updated successfully.');
       showToast({ message: 'Task updated successfully.', severity: 'success' });
-    } catch {
+    } catch (error) {
       setSuccessMessage(null);
-      showToast({ message: 'Unable to update task.', severity: 'error' });
+      showToast({ message: getApiErrorMessage(error, 'Unable to update task.'), severity: 'error' });
     }
   };
 
